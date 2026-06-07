@@ -18,13 +18,13 @@
 //   from your Firebase project.  Do NOT change the key names.
 //
 const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyBFc597khPRThMIGF4BRkqA7VxnNEM0zFk",
-  authDomain:        "shared-drawing-canvas.firebaseapp.com",
-  databaseURL:       "https://shared-drawing-canvas-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:         "shared-drawing-canvas",
-  storageBucket:     "shared-drawing-canvas.firebasestorage.app",
-  messagingSenderId: "379615731075",
-  appId:             "1:379615731075:web:113fea60f358360975aab6"
+  apiKey:            "AIzaSyBbVkORFwK9gHp3ZqP0KIH55d8j5Zhy2-Y",
+  authDomain:        "draw-together-8a926.firebaseapp.com",
+  databaseURL:       "https://draw-together-8a926-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId:         "draw-together-8a926",
+  storageBucket:     "draw-together-8a926.firebasestorage.app",
+  messagingSenderId: "969738697455",
+  appId:             "1:969738697455:web:2327309e258caffb99791a"
 };
 
 
