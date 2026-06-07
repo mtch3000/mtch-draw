@@ -18,13 +18,13 @@
 //   from your Firebase project.  Do NOT change the key names.
 //
 const FIREBASE_CONFIG = {
-  apiKey:            "PASTE_YOUR_API_KEY_HERE",
-  authDomain:        "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL:       "https://PASTE_YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId:         "PASTE_YOUR_PROJECT_ID",
-  storageBucket:     "PASTE_YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId:             "PASTE_YOUR_APP_ID"
+  apiKey:            "AIzaSyBFc597khPRThMIGF4BRkqA7VxnNEM0zFk",
+  authDomain:        "shared-drawing-canvas.firebaseapp.com",
+  databaseURL:       "https://shared-drawing-canvas-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "shared-drawing-canvas",
+  storageBucket:     "shared-drawing-canvas.firebasestorage.app",
+  messagingSenderId: "379615731075",
+  appId:             "1:379615731075:web:113fea60f358360975aab6"
 };
 
 
