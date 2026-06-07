@@ -296,9 +296,7 @@ html, body {
   position: fixed;
   top: var(--toolbar-h);
   left: 0;
-  width: 100%;
-  height: calc(100vh - var(--toolbar-h));
-  height: calc(100dvh - var(--toolbar-h));
+  /* Width and height are set dynamically via JS to handle portrait rotations */
   background: var(--canvas-bg);
   cursor: crosshair;
   display: block;
