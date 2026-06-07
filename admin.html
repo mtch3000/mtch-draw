@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Draw Together – Admin Panel">
+  <title>Admin – Draw Together</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Shared stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-body">
+
+  <!-- ================================================
+       LOGIN CARD
+       Shown when the admin is NOT logged in yet.
+       ================================================ -->
+  <div id="login-card" class="admin-card">
+
+    <div class="admin-logo">🔐</div>
+    <h1>Admin Login</h1>
+    <p class="admin-sub">Enter your credentials to manage the canvas.</p>
+
+    <div class="field-wrap">
+      <label for="username-input">Username</label>
+      <input
+        type="text"
+        id="username-input"
+        placeholder="admin"
+        autocomplete="username"
+        autocapitalize="none"
+      >
+    </div>
+
+    <div class="field-wrap">
+      <label for="password-input">Password</label>
+      <input
+        type="password"
+        id="password-input"
+        placeholder="••••••••"
+        autocomplete="current-password"
+      >
+    </div>
+
+    <!-- Error message shown on wrong credentials -->
+    <p id="login-error" class="error-msg"></p>
+
+    <button class="btn-primary" id="login-btn">Sign In</button>
+
+    <a href="index.html" class="back-link">← Back to canvas</a>
+
+  </div>
+
+
+  <!-- ================================================
+       ADMIN PANEL CARD
+       Shown AFTER successful login.
+       Hidden by default (display:none in JS).
+       ================================================ -->
+  <div id="admin-panel" class="admin-card" style="display:none;">
+
+    <div class="admin-logo admin-logo--green">✦</div>
+    <h1>Admin Panel</h1>
+    <p class="admin-sub">You are logged in as admin.</p>
+
+    <!-- Stats box -->
+    <div class="admin-info">
+      <span>🎨 Strokes on canvas: <strong id="stroke-count">—</strong></span>
+      <span id="last-cleared-text" style="display:none; color: var(--success); font-size: 0.8rem;">
+        ✅ Canvas cleared successfully!
+      </span>
+    </div>
+
+    <!-- Big red "Clear Canvas" button -->
+    <button class="btn-danger" id="clear-btn">
+      🗑️ &nbsp;Clear Entire Canvas
+    </button>
+
+    <!-- Confirmation message after clearing (hidden by default) -->
+    <p id="clear-msg" class="error-msg" style="color: var(--success); display:none;"></p>
+
+    <!-- Footer: back link + logout -->
+    <div class="admin-footer-links">
+      <a href="index.html" class="back-link">← Back to canvas</a>
+      <button class="btn-ghost" id="logout-btn">Log out</button>
+    </div>
+
+  </div>
+
+
+  <!-- ================================================
+       FIREBASE SDK
+       Must come before our scripts.
+       ================================================ -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <!-- Our scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/admin.js"></script>
+
+</body>
+</html>

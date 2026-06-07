@@ -1,0 +1,512 @@
+/* ==============================================
+   DRAW TOGETHER – Stylesheet
+   Works for both index.html and admin.html.
+   ============================================== */
+
+
+/* ── RESET & BASE ──────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Colour palette */
+  --bg:          #0e1117;
+  --surface:     #161b24;
+  --surface-2:   #1f2533;
+  --border:      #2a3040;
+  --text:        #e8eaf0;
+  --text-muted:  #8892a4;
+  --accent:      #f5a623;       /* warm amber – active tool */
+  --accent-glow: rgba(245,166,35,0.18);
+  --danger:      #e55353;
+  --danger-dark: #c03030;
+  --success:     #4caf7d;
+  --canvas-bg:   #fefefe;
+
+  /* Spacing / sizing */
+  --toolbar-h:   52px;
+  --radius:      8px;
+  --radius-lg:   14px;
+  --font:        'Nunito', sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;           /* prevents page scroll – canvas fills screen */
+  background: var(--bg);
+  font-family: var(--font);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+
+/* ── LOADING SCREEN ────────────────────────── */
+
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: opacity 0.4s ease;
+}
+
+#loading-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-content {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* ── TOOLBAR ───────────────────────────────── */
+
+#toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--toolbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 4px;
+  z-index: 100;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#toolbar::-webkit-scrollbar { display: none; }
+
+/* App brand */
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding-right: 4px;
+}
+.brand-icon {
+  color: var(--accent);
+  font-size: 1rem;
+}
+.brand-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* Separator line between groups */
+.sep {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+  flex-shrink: 0;
+  margin: 0 4px;
+}
+
+/* Tool group container */
+.tool-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Individual tool buttons */
+.tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface-2);
+  border: 1.5px solid transparent;
+  color: var(--text-muted);
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.tool-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+.tool-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* SVG icon inside buttons */
+.btn-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Colour picker */
+.color-wrap {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+#color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #1a1a1a;
+  border: 2px solid var(--border);
+  pointer-events: none;
+  transition: border-color 0.15s;
+}
+.color-wrap:hover #color-swatch {
+  border-color: var(--accent);
+}
+#color-picker {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* Size slider */
+.size-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.size-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+#size-slider {
+  width: 72px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+#size-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+  transition: width 0.15s, height 0.15s;
+}
+
+/* Undo button */
+#undo-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+#undo-btn:hover:not(:disabled) {
+  background: var(--border);
+  color: var(--text);
+}
+#undo-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.undo-badge {
+  background: var(--border);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 99px;
+  min-width: 22px;
+  text-align: center;
+}
+
+/* Admin lock icon (far right) */
+#admin-link {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  padding: 6px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+#admin-link:hover { color: var(--text); }
+
+
+/* ── CANVAS ─────────────────────────────────── */
+
+#canvas {
+  position: fixed;
+  top: var(--toolbar-h);
+  left: 0;
+  width: 100%;
+  height: calc(100vh - var(--toolbar-h));
+  height: calc(100dvh - var(--toolbar-h));
+  background: var(--canvas-bg);
+  cursor: crosshair;
+  display: block;
+  touch-action: none;
+}
+
+
+/* ── ADMIN PAGE ─────────────────────────────── */
+
+/* Admin body uses its own layout */
+.admin-body {
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(245,166,35,0.07) 0%, transparent 70%),
+    var(--bg);
+}
+
+.admin-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+}
+
+.admin-logo {
+  font-size: 2rem;
+  color: var(--accent);
+  line-height: 1;
+}
+.admin-logo--green {
+  color: var(--success);
+}
+
+.admin-card h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+  text-align: center;
+}
+.admin-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: -10px;
+}
+
+/* Form fields */
+.field-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field-wrap label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.field-wrap input {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field-wrap input:focus {
+  border-color: var(--accent);
+}
+
+/* Error message */
+.error-msg {
+  color: var(--danger);
+  font-size: 0.85rem;
+  text-align: center;
+  min-height: 1.2em;
+}
+
+/* Primary button (login) */
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: #1a1000;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-primary:hover  { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+
+/* Danger button (clear canvas) */
+.btn-danger {
+  width: 100%;
+  padding: 14px;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn-danger:hover  { background: var(--danger-dark); }
+.btn-danger:active { transform: scale(0.98); }
+.btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Ghost button (logout) */
+.btn-ghost {
+  background: none;
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-ghost:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+/* Admin info box */
+.admin-info {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+/* Footer links (back + logout) */
+.admin-footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Back link */
+.back-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+.back-link:hover { color: var(--text); }
+
+
+/* ── MOBILE ADJUSTMENTS ──────────────────────
+   Below 480px (most phones)
+   ──────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  :root {
+    --toolbar-h: 48px;
+  }
+
+  .brand-name { display: none; }
+
+  .tool-btn span {
+    display: none;
+  }
+  .tool-btn {
+    padding: 6px 8px;
+  }
+
+  .size-label { display: none; }
+
+  #size-slider { width: 56px; }
+
+  .admin-card {
+    padding: 28px 20px;
+  }
+}
