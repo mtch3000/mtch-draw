@@ -2,7 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <style>
+    #rotate-prompt {
+      display: none; /* Hidden by default, JS will show it */
+      position: fixed;
+      inset: 0;
+      background: rgba(14, 17, 23, 0.9); /* Semi-transparent */
+      backdrop-filter: blur(4px);
+      color: #e8eaf0;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 9999;
+      text-align: center;
+      padding: 24px;
+    }
+    #rotate-prompt .rotate-icon {
+      font-size: 3rem;
+      animation: wiggle 1.2s ease-in-out infinite;
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      25%       { transform: rotate(-90deg); } /* Mimics rotating the phone */
+      75%       { transform: rotate(0deg); }
+    }
+  </style>
   <meta name="description" content="Draw Together – a collaborative canvas for everyone">
   <title>Draw Together 🎨</title>
 
@@ -13,6 +44,12 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+  <div id="rotate-prompt">
+    <div class="rotate-icon">📱</div>
+    <p>Tip: Draw Together works here, but rotating your phone gives you a wider canvas!</p>
+    <button id="rotate-ok-btn" class="btn-primary" style="max-width: 200px; margin-top: 10px;">Got it</button>
+  </div>
 
   <div id="loading-screen">
     <div class="loading-content">
