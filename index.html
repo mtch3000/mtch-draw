@@ -2,75 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <!--
-    This viewport tag is VERY IMPORTANT for mobile.
-    It stops the page from zooming when you double-tap,
-    and makes sure the canvas fills the whole screen.
-  -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-  <!-- Force landscape orientation on mobile -->
-  <style>
-    #rotate-prompt {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #0e1117;
-      color: #e8eaf0;
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 700;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      z-index: 9999;
-      text-align: center;
-      padding: 24px;
-    }
-    #rotate-prompt .rotate-icon {
-      font-size: 3rem;
-      animation: wiggle 1.2s ease-in-out infinite;
-    }
-    @keyframes wiggle {
-      0%, 100% { transform: rotate(0deg); }
-      25%       { transform: rotate(-20deg); }
-      75%       { transform: rotate(20deg); }
-    }
-    @media (max-width: 768px) and (orientation: portrait) {
-      #rotate-prompt { display: flex; }
-      body > *:not(#rotate-prompt) { display: none !important; }
-    }
-  </style>
   <meta name="description" content="Draw Together – a collaborative canvas for everyone">
   <title>Draw Together 🎨</title>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Our stylesheet -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- ================================================
-       ROTATE PROMPT
-       Shown on mobile when phone is in portrait mode.
-       Disappears automatically when rotated to landscape.
-       ================================================ -->
-  <div id="rotate-prompt">
-    <div class="rotate-icon">📱</div>
-    <p>Please rotate your phone to landscape mode to use Draw Together</p>
-  </div>
-
-  <!-- ================================================
-       LOADING SCREEN
-       Shows while the app connects to Firebase.
-       Automatically disappears once ready.
-       ================================================ -->
   <div id="loading-screen">
     <div class="loading-content">
       <div class="loading-spinner"></div>
@@ -78,14 +21,8 @@
     </div>
   </div>
 
-  <!-- ================================================
-       TOOLBAR
-       Contains all drawing tools and controls.
-       Scrolls horizontally on small mobile screens.
-       ================================================ -->
   <header id="toolbar">
 
-    <!-- App brand / logo -->
     <div class="app-brand">
       <span class="brand-icon">✦</span>
       <span class="brand-name">Draw Together</span>
@@ -93,7 +30,6 @@
 
     <div class="sep"></div>
 
-    <!-- Drawing tool buttons -->
     <div class="tool-group">
 
       <button class="tool-btn active" data-tool="pen" title="Pen – thin sharp line">
@@ -131,7 +67,6 @@
 
     <div class="sep"></div>
 
-    <!-- Colour picker -->
     <label class="color-wrap" title="Pick a colour">
       <div id="color-swatch"></div>
       <input type="color" id="color-picker" value="#1a1a1a" aria-label="Colour picker">
@@ -139,7 +74,6 @@
 
     <div class="sep"></div>
 
-    <!-- Brush-size slider -->
     <div class="size-wrap">
       <span class="size-label">Size</span>
       <input type="range" id="size-slider" min="1" max="40" value="5" aria-label="Brush size">
@@ -148,7 +82,6 @@
 
     <div class="sep"></div>
 
-    <!-- Undo button -->
     <button id="undo-btn" title="Undo your last stroke (up to 5 of your own strokes)">
       <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 7v6h6"/>
@@ -158,7 +91,6 @@
       <span id="undo-count" class="undo-badge">0</span>
     </button>
 
-    <!-- Admin link pushed to the far right -->
     <a href="admin.html" id="admin-link" title="Admin Login" aria-label="Admin panel">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -168,25 +100,11 @@
 
   </header>
 
-  <!-- ================================================
-       CANVAS
-       This is where everyone draws.
-       Its size is set dynamically by app.js.
-       ================================================ -->
   <canvas id="canvas" aria-label="Collaborative drawing canvas"></canvas>
 
-  <!-- ================================================
-       FIREBASE SDK  (version 10 – compatibility mode)
-       These scripts load Firebase from Google's CDN.
-       They must come BEFORE our own scripts.
-       ================================================ -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-  <!-- ================================================
-       OUR SCRIPTS
-       config.js must come before app.js.
-       ================================================ -->
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>
 
