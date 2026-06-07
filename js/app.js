@@ -3,8 +3,6 @@
 //  Main drawing logic + real-time sync with Firebase
 // ================================================================
 
-
-// ── 1. GET / CREATE A UNIQUE ID FOR THIS VISITOR ─────────────────
 function getOrCreateUserId() {
   let uid = localStorage.getItem('drawtogether_uid');
   if (!uid) {
@@ -15,39 +13,83 @@ function getOrCreateUserId() {
 }
 const MY_USER_ID = getOrCreateUserId();
 
-
-// ── 2. CANVAS SETUP ───────────────────────────────────────────────
+// ── CANVAS SETUP & RESIZING ───────────────────────────────────────
 
 const canvas  = document.getElementById('canvas');
 const ctx     = canvas.getContext('2d');
 
-function resizeCanvas() {
-  const toolbarEl  = document.getElementById('toolbar');
-  const toolbarH   = toolbarEl ? toolbarEl.offsetHeight : 52;
+let isPortraitMode = false;
 
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight - toolbarH;
+// Make canvas fill the screen appropriately. Mobile portrait screens
+// apply a 90deg CSS rotation to maintain a shared landscape coordinate space.
+function resizeCanvas() {
+  const toolbarEl = document.getElementById('toolbar');
+  const toolbarH  = toolbarEl ? toolbarEl.offsetHeight : 52;
+  const screenW   = window.innerWidth;
+  const screenH   = window.innerHeight - toolbarH;
+
+  isPortraitMode = screenH > screenW;
+
+  if (isPortraitMode) {
+    // Internal resolution stays landscape, filling the portrait bounds
+    canvas.width  = screenH;
+    canvas.height = screenW;
+    
+    // Explicitly set DOM element size and apply CSS rotation
+    canvas.style.width = screenH + 'px';
+    canvas.style.height = screenW + 'px';
+    canvas.style.transformOrigin = '0 0';
+    canvas.style.transform = `translateX(${screenW}px) rotate(90deg)`;
+  } else {
+    // Standard landscape layout
+    canvas.width  = screenW;
+    canvas.height = screenH;
+    canvas.style.width = screenW + 'px';
+    canvas.style.height = screenH + 'px';
+    canvas.style.transformOrigin = '0 0';
+    canvas.style.transform = 'none';
+  }
 
   redrawAll();
 }
 
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 150));
+window.addEventListener('orientationchange', () => {
+  setTimeout(resizeCanvas, 150);
+});
 
+// ── COORDINATE MAPPING ────────────────────────────────────────────
 
-// ── 3. DRAWING STATE VARIABLES ────────────────────────────────────
+// Translates viewport screen coordinates into the internal canvas coordinates
+function getCanvasCoord(clientX, clientY) {
+  const toolbarEl = document.getElementById('toolbar');
+  const toolbarH  = toolbarEl ? toolbarEl.offsetHeight : 52;
 
-let isDrawing     = false;
-let currentTool   = 'pen';
+  // Screen coordinates relative to the canvas drawing area
+  const sx = clientX;
+  const sy = clientY - toolbarH;
+
+  if (isPortraitMode) {
+    // Inverse mapping of `translateX(screenW) rotate(90deg)`
+    // canvas.height is exactly our portrait screen width.
+    const W = canvas.height; 
+    return { x: sy, y: W - sx };
+  } else {
+    return { x: sx, y: sy };
+  }
+}
+
+// ── DRAWING STATE VARIABLES ───────────────────────────────────────
+
+let isDrawing     = false; 
+let currentTool   = 'pen'; 
 let currentColor  = '#1a1a1a';
 let currentSize   = 5;
+
 let liveStroke    = null;
 let myStrokeIds   = [];
 let allStrokes    = {};
 let dbRef         = null;
-
-
-// ── 4. TOOL APPEARANCE SETTINGS ───────────────────────────────────
 
 const TOOL_SETTINGS = {
   pen:    { widthFactor: 0.35,  alpha: 1.0 },
@@ -56,8 +98,7 @@ const TOOL_SETTINGS = {
   eraser: { widthFactor: 2.0,   alpha: 1.0 }
 };
 
-
-// ── 5. DRAW A SINGLE STROKE ───────────────────────────────────────
+// ── DRAWING LOGIC ─────────────────────────────────────────────────
 
 function drawStroke(stroke) {
   if (!stroke || !stroke.points || stroke.points.length === 0) return;
@@ -99,9 +140,6 @@ function drawStroke(stroke) {
   ctx.restore();
 }
 
-
-// ── 6. REDRAW THE ENTIRE CANVAS FROM SCRATCH ──────────────────────
-
 function redrawAll() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#fefefe';
@@ -111,8 +149,7 @@ function redrawAll() {
   sorted.forEach(stroke => drawStroke(stroke));
 }
 
-
-// ── 7. STROKE LIFECYCLE ───────────────────────────────────────────
+// ── STROKE LIFECYCLE ──────────────────────────────────────────────
 
 function startStroke(x, y) {
   liveStroke = {
@@ -128,7 +165,6 @@ function startStroke(x, y) {
 
 function continueStroke(x, y) {
   if (!liveStroke) return;
-
   liveStroke.points.push({ x, y });
 
   const pts = liveStroke.points;
@@ -152,7 +188,6 @@ function continueStroke(x, y) {
   }
 
   ctx.beginPath();
-
   if (n >= 3) {
     const prev  = pts[n - 3];
     const curr  = pts[n - 2];
@@ -180,7 +215,7 @@ function endStroke() {
 
   myStrokeIds.push(strokeKey);
   if (myStrokeIds.length > 5) myStrokeIds.shift();
-
+  
   updateUndoBadge();
 
   dbRef.child(strokeKey).set(liveStroke)
@@ -189,12 +224,10 @@ function endStroke() {
   liveStroke = null;
 }
 
-
-// ── 8. MOUSE EVENTS ───────────────────────────────────────────────
+// ── EVENTS (Mouse & Touch) ────────────────────────────────────────
 
 function posFromMouse(e) {
-  const rect = canvas.getBoundingClientRect();
-  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  return getCanvasCoord(e.clientX, e.clientY);
 }
 
 canvas.addEventListener('mousedown', e => {
@@ -221,13 +254,10 @@ canvas.addEventListener('mouseleave', () => {
   endStroke();
 });
 
-
-// ── 9. TOUCH EVENTS ───────────────────────────────────────────────
-
+// Touch Events
 function posFromTouch(e) {
-  const rect  = canvas.getBoundingClientRect();
   const touch = e.touches[0];
-  return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+  return getCanvasCoord(touch.clientX, touch.clientY);
 }
 
 canvas.addEventListener('touchstart', e => {
@@ -258,7 +288,7 @@ canvas.addEventListener('touchcancel', e => {
 }, { passive: false });
 
 
-// ── 10. TOOLBAR CONTROLS ──────────────────────────────────────────
+// ── TOOLBAR CONTROLS ──────────────────────────────────────────────
 
 document.querySelectorAll('.tool-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -291,8 +321,7 @@ sizeSlider.addEventListener('input', e => {
 document.getElementById('undo-btn').addEventListener('click', () => {
   if (myStrokeIds.length === 0) return;
   const lastId = myStrokeIds.pop();
-  dbRef.child(lastId).remove()
-    .catch(err => console.error('Undo failed:', err));
+  dbRef.child(lastId).remove().catch(err => console.error('Undo failed:', err));
   updateUndoBadge();
 });
 
@@ -304,17 +333,17 @@ function updateUndoBadge() {
   btn.disabled = (myStrokeIds.length === 0);
 }
 
-
-// ── 11. FIREBASE SYNC ─────────────────────────────────────────────
+// ── FIREBASE ──────────────────────────────────────────────────────
 
 function initSync() {
   dbRef = firebase.database().ref('strokes');
-
   dbRef.on('value', snapshot => {
     allStrokes = snapshot.val() || {};
     redrawAll();
-
-    if (isDrawing && liveStroke) drawStroke(liveStroke);
+    
+    if (isDrawing && liveStroke) {
+      drawStroke(liveStroke);
+    }
 
     const loader = document.getElementById('loading-screen');
     if (loader && !loader.classList.contains('hidden')) {
@@ -328,8 +357,7 @@ function initSync() {
   });
 }
 
-
-// ── 12. INIT ──────────────────────────────────────────────────────
+// ── START ─────────────────────────────────────────────────────────
 
 window.addEventListener('load', () => {
   resizeCanvas();
@@ -339,8 +367,9 @@ window.addEventListener('load', () => {
   } catch (e) {
     console.error('Could not start Firebase. Did you fill in js/config.js?', e);
     const loader = document.getElementById('loading-screen');
-    if (loader) loader.querySelector('p').textContent =
-      '⚠️ Firebase not configured. See SETUP_GUIDE.md';
+    if (loader) {
+      loader.querySelector('p').textContent = '⚠️ Firebase not configured. See SETUP_GUIDE.md';
+    }
   }
 
   updateUndoBadge();
