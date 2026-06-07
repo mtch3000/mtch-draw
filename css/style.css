@@ -296,7 +296,6 @@ html, body {
   position: fixed;
   top: var(--toolbar-h);
   left: 0;
-  /* Width and height are set dynamically via JS to handle portrait rotations */
   background: var(--canvas-bg);
   cursor: crosshair;
   display: block;
@@ -394,7 +393,7 @@ html, body {
   min-height: 1.2em;
 }
 
-/* Primary button (login) */
+/* Primary button (login, ok prompt) */
 .btn-primary {
   width: 100%;
   padding: 12px;
