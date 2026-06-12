@@ -635,11 +635,12 @@
   // ── RENDER MESSAGES ───────────────────────────────────────────
   function _renderMessages(msgs) {
     const container = document.getElementById('chat-messages');
-    const sorted    = Object.values(msgs).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    const entries   = Object.entries(msgs);
+    const sorted    = entries.sort((a, b) => (a[1].timestamp || 0) - (b[1].timestamp || 0));
     const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 40;
 
     container.innerHTML = '';
-    sorted.forEach(msg => {
+    sorted.forEach(([msgKey, msg]) => {
       const el = document.createElement('div');
 
       if (msg.type === 'system') {
@@ -650,11 +651,14 @@
         el.className = 'chat-msg ' + (isMe ? 'chat-msg-me' : 'chat-msg-them');
 
         const time = msg.timestamp ? _fmtTime(msg.timestamp) : '';
+        const deleteBtn = isOwner ? `<button class="chat-msg-delete-btn" data-msg-key="${_escHtml(msgKey)}" title="Delete message">×</button>` : '';
+        
         el.innerHTML = `
           <div class="chat-msg-bubble" style="--bubble-color:${msg.color || '#aaa'}">
             ${!isMe ? `<span class="chat-msg-name" style="color:${msg.color}">${_escHtml(msg.name || '?')}</span>` : ''}
             <p class="chat-msg-text">${_escHtml(msg.text)}</p>
             <span class="chat-msg-time">${time}</span>
+            ${deleteBtn}
           </div>
         `;
       }
@@ -662,11 +666,32 @@
       container.appendChild(el);
     });
 
+    // Attach delete handlers
+    container.querySelectorAll('.chat-msg-delete-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const msgKey = btn.dataset.msgKey;
+        _deleteMessage(msgKey);
+      });
+    });
+
     if (wasAtBottom) {
       container.scrollTop = container.scrollHeight;
     } else if (document.getElementById('chat-room-panel').classList.contains('hidden')) {
       _bumpUnread();
     }
+  }
+
+  // ── DELETE MESSAGE ─────────────────────────────────────────────
+  function _deleteMessage(msgKey) {
+    if (!isOwner || !currentGroupRef) return;
+    if (!confirm('Delete this message?')) return;
+    
+    currentGroupRef.child('messages').child(msgKey).remove()
+      .then(() => _showToast('Message deleted'))
+      .catch(err => {
+        console.error('Failed to delete message:', err);
+        _showToast('Failed to delete message');
+      });
   }
 
   // ── SHARE LINK ────────────────────────────────────────────────

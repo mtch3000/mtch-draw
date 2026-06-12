@@ -45,6 +45,7 @@ function showAdminPanel() {
   loginCard.style.display  = 'none';
   adminPanel.style.display = 'flex';
   startStrokeCounter();
+  startChatMonitor();
 }
 
 function showLoginPanel() {
@@ -53,6 +54,7 @@ function showLoginPanel() {
   usernameInput.value = '';
   passwordInput.value = '';
   loginError.textContent  = '';
+  stopChatMonitor();
 }
 
 
@@ -93,6 +95,7 @@ loginBtn.addEventListener('click', attemptLogin);
 logoutBtn.addEventListener('click', () => {
   sessionStorage.removeItem(SESSION_KEY);
   stopStrokeCounter();
+  stopChatMonitor();
   showLoginPanel();
 });
 
@@ -168,6 +171,91 @@ clearBtn.addEventListener('click', () => {
     });
 });
 
+
+// ── CHAT MANAGEMENT ──────────────────────────────────────────────
+//
+//   Admin can view and delete chat groups in real time.
+//
+
+let chatGroupsRef   = null;
+let chatListener    = null;
+
+function startChatMonitor() {
+  try {
+    chatGroupsRef = firebase.database().ref('chat_groups');
+  } catch (e) {
+    document.getElementById('chat-groups-container').innerHTML = 
+      '<p style="color: var(--danger);">Chat system not configured</p>';
+    return;
+  }
+
+  chatListener = chatGroupsRef.on('value', snapshot => {
+    const data = snapshot.val() || {};
+    _renderChatGroups(data);
+  });
+}
+
+function stopChatMonitor() {
+  if (chatGroupsRef && chatListener) {
+    chatGroupsRef.off('value', chatListener);
+  }
+  chatGroupsRef   = null;
+  chatListener    = null;
+}
+
+function _renderChatGroups(groups) {
+  const container = document.getElementById('chat-groups-container');
+  const groupIds = Object.keys(groups);
+
+  if (groupIds.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 12px;">No active chat groups</p>';
+    return;
+  }
+
+  container.innerHTML = '';
+  groupIds.forEach(groupId => {
+    const group = groups[groupId];
+    const members = group.members ? Object.keys(group.members).length : 0;
+    const messages = group.messages ? Object.keys(group.messages).length : 0;
+
+    const card = document.createElement('div');
+    card.className = 'admin-chat-group-card';
+    card.innerHTML = `
+      <div style="flex: 1;">
+        <div style="font-weight: 700; color: var(--text); margin-bottom: 4px;">
+          ${_escAdminHtml(group.name || 'Unnamed Group')}
+        </div>
+        <div style="font-size: 0.82rem; color: var(--text-muted); display: flex; gap: 12px;">
+          <span>👥 ${members} member${members !== 1 ? 's' : ''}</span>
+          <span>💬 ${messages} message${messages !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+      <button class="btn-danger admin-delete-group-btn" data-group-id="${groupId}" 
+              style="font-size: 0.75rem; padding: 6px 10px;">Delete</button>
+    `;
+    container.appendChild(card);
+  });
+
+  // Attach delete handlers
+  container.querySelectorAll('.admin-delete-group-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const groupId = btn.dataset.groupId;
+      const groupName = groups[groupId]?.name || 'Group';
+      if (confirm(`Delete chat group "${_escAdminHtml(groupName)}"? This cannot be undone.`)) {
+        chatGroupsRef.child(groupId).remove()
+          .catch(err => alert('Error deleting group: ' + err.message));
+      }
+    });
+  });
+}
+
+function _escAdminHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 // ── INIT: CHECK EXISTING SESSION ──────────────────────────────────
 //
